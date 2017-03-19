@@ -6,7 +6,7 @@ var count = 0;
 var cellId = 0;
 var pf;   // the global path finder object
 const TWO_PI = 6.28318530718;
-const FRAME_RATE=10;
+const FRAME_RATE=30;
 
 function setup() {
   pf = new PathFinder();
@@ -38,22 +38,13 @@ class PathFinder{
     this.done = false;
     // containerarrays for cells
     this.grid = [];
-    this.queue = [];
-    this.empty = [];         // whole grid
-    this.root = null;
-    this.empty.push(this.root);
-    this.current;
+    this.enemies = [];     
 
     this.cols = Math.floor(this.canvas.width / this.w);
     this.rows = Math.floor(this.canvas.height / this.w);
 
-    // init class methods
-    this.init();
-
-  }
-
-  init(){
     this.loadGrid();
+    this.root = this.grid[this.cols - 1][this.rows -1];
     this.brushfire();
     //  add listeners
     // Every time the use clicks in a cell that cell becomes blocked
@@ -67,21 +58,34 @@ class PathFinder{
       // toggle the occupied property of the clicked cell
       pf.grid[col][row].occupied = !pf.grid[col][row].occupied;
       pf.brushfire();   // all new distances and parents
+      // delete any enemy that is currently in a cell without a parent
+      for(let i = 0; i < pf.enemies.length;  i++) {
+        let enemy = pf.enemies[i];
+        if(!enemy.currentCell.parent)
+            enemy.kill = true;    // kill the orphans
+        }
     }, false );
 
     this.canvas.addEventListener('mousemove',function(evt){
       pf.mouseX = evt.offsetX;
       pf.mouseY = evt.offsetY;
     }, false );
-  }//  ++++++++++++++++++++++++++++++++++++++++++++  End init
   
+    var b = document.getElementById('buttOne'); // send enemy
+    if(b) {
+        b.addEventListener('mouseover',this.handleButtonMouseOver);
+        b.addEventListener('mouseout',this.handleButtonMouseOut);
+        b.addEventListener('click', this.sendEnemies);
+        }
+  
+  }
 
     // brushfire()
     // starting with the 'root' cell, which is the bottom right cell of the grid
     // assign a "distance" to all other cells where the distance is the
     // accumulated steps from that cell to the root cell.
-    // An adjacent neighbor has a distance of 10
-    // and a diagonal neighbor has a distance of 14.
+    // An adjacent neighbor has a step of 10
+    // and a diagonal neighbor has a step of 14.
     
   brushfire() {
     // Initialize each cell in the grid to have a distance that
@@ -97,17 +101,16 @@ class PathFinder{
       }
     }
     // Initialize the fifo queue with the root cell
-    this.root = this.grid[this.cols - 1][this.rows -1];
     this.root.dist = 0;
-    this.root.color = "red";
-    this.queue = [this.root];
+    this.root.occupied = false;
+    var queue = [this.root];
 
     // loop as long as the queue is not empty, removing the first cell
     // in the queue and adding all its neighbors to the end of the
     // queue.  The neighbors will only be those that are not occupied
     // and not blocked diagonally.  
-    while(this.queue.length) {    
-        var current = this.queue.shift();   // remove the first cell from the queue
+    while(queue.length) {    
+        var current = queue.shift();   // remove the first cell from the queue
         // for all its neighbors...
         for(let j =0; j < current.neighbors.length; j++){
             let neighbor = current.neighbors[j];
@@ -120,10 +123,10 @@ class PathFinder{
             if(neighbor.dist > dist) {
                 neighbor.parent = current;
                 neighbor.dist = dist;
-                this.queue.push(neighbor);
+                queue.push(neighbor);
                 }
           }     // for each neighbor
-        }   // while(this.queue.length)
+        }   // while(queue.length)
         
         // give each cell a vector that points to its parent
       for(var i = 0; i < this.cols; i++){
@@ -133,10 +136,42 @@ class PathFinder{
       }
   
     }
+
+    // sendEnemies()
+    // Send a random number of enemies, up to 5, each from a random location
+    // in the top half of the grid.  About half of the enemies will take the
+    // optimal path simply by following the parent chain and about half will
+    // take a path of randomly choosing cells to be next on the path 
+    // from all those cells with a distance to the root that is
+    // less than its current location.    
+    // A valid cell to start the enemy must have a parent because lack
+    // of a parent means either it is occupied or it is blocked from any path.
+    sendEnemies() {
+        var numEnemies = Math.random() * 5;     // up to 5 enemies
+        var row, col, startCell, i, j;
+        for( i = 0; i < numEnemies; i++) {
+            for(j = 0; j < 3; j++) { // try 3 times to find valid start cell
+                let row = Math.floor(Math.random() * (pf.rows/2));    // top  half of rows
+                let col = Math.floor(Math.random() * pf.cols);        // any column
+                startCell = pf.grid[col][row];
+                if(startCell && startCell.parent)   // must have a parent to have any path
+                    break;
+                }
+            if(j < 3) { // if we found a valid cell to start the enemy
+                let randomPath = Math.floor(Math.random() * 2);    // about half
+                pf.enemies.push(new Enemy(pf, startCell, randomPath));
+                }          
+            }    
+    }
     
 
   run(){
     this.render();
+    for(let i = this.enemies.length-1; i >= 0; i--) {
+        if(this.enemies[i].kill)
+            this.enemies.splice(i,1);   // delete this dead enemy
+        else this.enemies[i].run();
+        }
     
   }//  End run++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -158,12 +193,21 @@ class PathFinder{
       for(var j = 0; j < this.rows; j++){
         this.grid[i][j] = new Cell(this, vector2d((i*this.w), (j*this.w)), ++cellId);
         // make 10% of the cells occupied
-        if(Math.floor(Math.random()*100) < 10)   
+        if(this.grid[i][j] != this.root && Math.floor(Math.random()*100) < 10)   
             this.grid[i][j].occupied = true;
       }
     }
 
   }  // ++++++++++++++++++++++++++++++++++++++++++++++  End LoadGrid
+
+  handleButtonMouseOver() {
+    this.style.backgroundColor = '#AA3377';
+  }
+
+  handleButtonMouseOut() {
+    this.style.backgroundColor = '#AAA';
+  }
+
 
 
 }/// pathfinder
