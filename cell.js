@@ -20,7 +20,9 @@ class Cell{
     pf.context.strokeRect(this.loc.x, this.loc.y, pf.w, pf.w);
     if(this.occupied) 
         this.color = "darkSlateGray";
-    else this.color = 'pink';
+    else if(this != pf.root)
+        this.color = 'pink';
+    else this.color = 'red';    // for root cell
     pf.context.fillStyle = this.color;
     pf.context.fillRect(this.loc.x, this.loc.y, pf.w, pf.w);
 
