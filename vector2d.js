@@ -123,109 +123,110 @@ function Vector2d()
 		this.x = arguments[0];
 		this.y = arguments[1];
 	}
+}
 
-	// Multiply vector.
-	Vector2d.prototype.mul = function(mul)
-	{
-		this.x *= mul;
-		this.y *= mul;
-        return(this);
-	};
+// Multiply vector.
+Vector2d.prototype.mul = function(mul)
+{
+    this.x *= mul;
+    this.y *= mul;
+    return(this);
+};
 
-	// Add a vector.
-	Vector2d.prototype.add = function(v2)
-	{
-		this.x += v2.x;
-		this.y += v2.y;
-        return(this);
-	};
+Vector2d.prototype.scale = Vector2d.prototype.mul;
 
-	// Subtract a vector.
-	Vector2d.prototype.sub = function(v2)
-	{
-		this.x -= v2.x;
-		this.y -= v2.y;
-        return(this);
-	};
+// Add a vector.
+Vector2d.prototype.add = function(v2)
+{
+    this.x += v2.x;
+    this.y += v2.y;
+    return(this);
+};
 
-	// Length of vector.
-	Vector2d.prototype.len = function()
-	{
-		return Math.sqrt(this.x*this.x + this.y*this.y);
-	};
+// Subtract a vector.
+Vector2d.prototype.sub = function(v2)
+{
+    this.x -= v2.x;
+    this.y -= v2.y;
+    return(this);
+};
 
-	// Normalize (unit length). Also returns length before normalisation.
-	// 2-20-17 normalize the spelling of normalise to normalize
-	Vector2d.prototype.normalize = function()
-	{
-		var len = Math.sqrt(this.x*this.x + this.y*this.y);
-		if(len) {
-			this.x /= len;
-			this.y /= len;
-		}
-        return(this);
-	};
+// Length of vector.
+Vector2d.prototype.length = function()
+{
+    return Math.sqrt(this.x*this.x + this.y*this.y);
+};
 
-	// Dot product.
-	Vector2d.prototype.dotProd = function(v2)
-	{
-		return (this.x * v2.x) + (this.y * v2.y);
-	};
-
-	// Rotate vector by an angle in radians.
-	Vector2d.prototype.rotate = function(ang)
-	{
-		this.x = (this.x * Math.cos(ang)) - (this.y * Math.sin(ang));
-		this.y = (this.y * Math.cos(ang)) + (this.x * Math.sin(ang));
-        return(this);
-	};
-
-	// Negate vector (point in opposite direction).
-	Vector2d.prototype.negate = function()
-	{
-		this.x = -this.x;
-		this.y = -this.y;
-        return(this);
-	};
-
-	//toString function.
-	Vector2d.prototype.toString = function()
-	{
-		return 'x = ' + this.x + ', y = ' + this.y;
-	};
-
-    Vector2d.prototype.rotate = function(angle) {
-        this.x = Math.cos(angle) * this.x - Math.Sin(angle) * this.y
-        this.y = Math.Sin(angle) * this.x + Math.Cos(angle) * this.y
-        return(this);
-
-    };
-
-        // 2-20-17 added copy()
-    Vector2d.prototype.copy =  function() {
-        return(new Vector2d(this.x, this.y));
-    };
-
-        // 2-20-17 added dist()
-    Vector2d.prototype.dist = function (vec2) {
-     return(vec2.copy().sub(this).len());
-    };
-
-        // 2-20-17 added angleBetween()
-    Vector2d.prototype.angleBetween = function (vec2) {
-        return(vec2.angle() - this.angle());
-    };
-
-        // 2-20-17 added angle()
-    Vector2d.prototype.angle =  function () {
-        return(Math.atan2(this.y, this.x));
-    };
+// A faster length calculation that returns the length squared.
+// Useful if all you want to know is that one vector is longer than another.
+Vector2d.prototype.lengthSquared = function () {
+    return this.x * this.x + this.y * this.y;
+};
 
 
-
-   /* Vector2D CrossProduct(const Vector2D & v) const
-    {
-    return Vector2D(v.Y, -v.X);
+// Normalize (unit length). Also returns length before normalisation.
+// 2-20-17 normalize the spelling of normalise to normalize
+Vector2d.prototype.normalize = function()
+{
+    var len = Math.sqrt(this.x*this.x + this.y*this.y);
+    if(len) {
+        this.x /= len;
+        this.y /= len;
     }
-    */
+    return(this);
+};
+
+// Dot product.
+Vector2d.prototype.dotProd = function(v2)
+{
+    return (this.x * v2.x) + (this.y * v2.y);
+};
+
+// Rotate vector by an angle in radians.
+Vector2d.prototype.rotate = function(ang)
+{
+    this.x = (this.x * Math.cos(ang)) - (this.y * Math.sin(ang));
+    this.y = (this.y * Math.cos(ang)) + (this.x * Math.sin(ang));
+    return(this);
+};
+
+// Negate vector (point in opposite direction).
+Vector2d.prototype.negate = function()
+{
+    this.x = -this.x;
+    this.y = -this.y;
+    return(this);
+};
+
+//toString function.
+Vector2d.prototype.toString = function()
+{
+    return 'x = ' + this.x + ', y = ' + this.y;
+};
+
+Vector2d.prototype.rotate = function(angle) {
+    this.x = Math.cos(angle) * this.x - Math.sin(angle) * this.y
+    this.y = Math.sin(angle) * this.x + Math.cos(angle) * this.y
+    return(this);
+
+};
+
+    // 2-20-17 added copy()
+Vector2d.prototype.copy =  function() {
+    return(new Vector2d(this.x, this.y));
+};
+
+    // 2-20-17 added dist()
+Vector2d.prototype.dist = function (vec2) {
+ return(vec2.copy().sub(this).len());
+};
+
+    // 2-20-17 added angleBetween()
+Vector2d.prototype.angleBetween = function (vec2) {
+    return(vec2.angle() - this.angle());
+};
+
+    // 2-20-17 added angle()
+Vector2d.prototype.angle =  function () {
+    return(Math.atan2(this.y, this.x));
 };
