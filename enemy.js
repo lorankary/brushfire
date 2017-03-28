@@ -72,7 +72,7 @@ class Enemy {
             }
          this.target = this.targetCell.center;      // always target the center of the cell
         }
-    // calculate new unit vector from current location to the target.  
+    // calculate new vector from current location to the target.  
     var targetVec = this.target.copy().sub(this.loc);    // the direction we want to go
     var angleBetween = this.velVec.angleBetween(targetVec);
     if(angleBetween) {  // if there is some angle between
