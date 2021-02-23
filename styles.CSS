@@ -1,8 +1,11 @@
 
 body{
-     background-color: #241C00;
+     background-color: white;
   }
 
+#canDiv {
+    margin: 20px;
+}
 
   #wrapperDiv{
   margin:auto;

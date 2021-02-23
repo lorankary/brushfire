@@ -1,15 +1,18 @@
 
 class Cell{
-  constructor( pf, loc, id){
+  constructor( pf, col, row, id){
     this.pf = pf;       // the global instance
-    this.loc = loc;     // top left pixel location
-    this.center = vector2d(loc.x+(pf.w)/2, loc.y+(pf.w)/2);
+    this.col = col;
+    this.row = row;
+    this.loc = vector2d((pf.layout.grid.left+(col*pf.w)),
+                (pf.layout.grid.top+(row*pf.w)))
+    this.center = vector2d(this.loc.x+(pf.w)/2, this.loc.y+(pf.w)/2);
     this.color = 'pink';
     this.id = id;
     this.neighbors = [];
     this.occupied = false;
     this.parent = 0;  //  this is the parent cell
-    this.dist = -1; 
+    this.dist = -1;
     this.vec = null;
 
   }
@@ -18,10 +21,16 @@ class Cell{
     let pf = this.pf;
     pf.context.strokeStyle = 'white';
     pf.context.strokeRect(this.loc.x, this.loc.y, pf.w, pf.w);
-    if(this.occupied) 
+    if(this.occupied)
         this.color = "darkSlateGray";
-    else if(this != pf.root)
-        this.color = 'pink';
+    else if(this != pf.root) {
+        if(this == pf.current)
+            this.color = "green";
+        else if(this.dist < pf.maxDist)
+            this.color = "orange";
+        else
+            this.color = 'pink';
+    }
     else this.color = 'red';    // for root cell
     pf.context.fillStyle = this.color;
     pf.context.fillRect(this.loc.x, this.loc.y, pf.w, pf.w);
@@ -34,8 +43,8 @@ class Cell{
       pf.context.stroke();
 
     }
-           
-    this.getText();
+
+    this.getText(this.loc);
   }
 
     // addNeighbors()
@@ -44,11 +53,11 @@ class Cell{
     // For example, a southeast neighbor might not be occupied
     // but if east and south are both occupied then southeast is blocked
     // and not considered to be a neighbor.
-    
+
   addNeighbors(pf, grid){
     this.neighbors = [];    // start with empty neighbors
-    let col = this.loc.x/pf.w;
-    let row = this.loc.y/pf.w;
+    let col = this.col;
+    let row = this.row;
     let n,ne,e,se,s,sw,w,nw = null; // all eight neighbors
 
     if(row > 0 ){
@@ -108,15 +117,15 @@ class Cell{
     else return(vector2d(0,0));
   }
 
-  getText(){
+  getText(loc){
 
     var context = pf.context;
     context.save();
     context.fillStyle = "white";
     context.font = "14px sans-serif";
-    context.fillText(""+this.dist, this.loc.x+.2*pf.w/2, this.loc.y+pf.w/2 - 5);
+    context.fillText(""+this.dist, loc.x+.2*pf.w/2, loc.y+pf.w/2 - 5);
     context.fillStyle = "black";
-    context.fillText(""+this.id, this.loc.x+.2*pf.w/2, this.loc.y+pf.w/2 +15);
+    context.fillText(""+this.id, loc.x+.2*pf.w/2, loc.y+pf.w/2 +15);
     //if(this.vec) context.fillText(""+this.vec.toString(), this.loc.x+.2*pf.w/2, this.loc.y+pf.w/2 +15);
 
     context.restore();
