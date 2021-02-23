@@ -6,7 +6,9 @@ var count = 0;
 var cellId = 0;
 var pf;   // the global path finder object
 const TWO_PI = 6.28318530718;
-const FRAME_RATE=5;
+const FRAME_RATE=10;
+var run = false;
+var step = false;
 
 function setup() {
   pf = new PathFinder();
@@ -81,13 +83,18 @@ class PathFinder{
       pf.mouseY = evt.offsetY;
     }, false );
 
-    var b = document.getElementById('buttOne'); // send enemy
-    if(b) {
-        b.addEventListener('mouseover',this.handleButtonMouseOver);
-        b.addEventListener('mouseout',this.handleButtonMouseOut);
-        b.addEventListener('click', this.sendEnemies);
+    window.addEventListener("keypress", function(e){
+        switch(e.code){
+            case "KeyR":
+                run = !run;
+                break;
+            case "KeyS":
+                run = false;
+                step = true;
+                break;
+            break;
         }
-
+    }, false);
   }
 
     // brushfire()
@@ -161,27 +168,29 @@ class PathFinder{
 
 
   run(){
-    if(this.queue.length){
-        let current = this.current = this.queue.shift();   // remove the first cell from the queue
-        // for all its neighbors...
-        for(let j =0; j < current.neighbors.length; j++){
-            let neighbor = current.neighbors[j];
-            var dist = current.dist+10; // adjacent neighbors have a distance of 10
-            if(current.loc.x != neighbor.loc.x && current.loc.y != neighbor.loc.y)
-                dist = current.dist+14; // diagonal neighbors have a distance of 14
-            // if this neighbor has not already been assigned a distance
-            // or we now have a shorter distance, give it a distance
-            // and a parent and push to the end of the queue.
-            if(neighbor.dist > dist) {
-                neighbor.parent = current;
-                neighbor.vec = neighbor.getVector();   // vector to parent
-                neighbor.dist = dist;
-                this.queue.push(neighbor);
-                }
-          }     // for each neighbor
-        }   // while(queue.length)
-    else this.current = null;
-
+      if(run || step) {
+        if(step) step = false;
+        if(this.queue.length){
+            let current = this.current = this.queue.shift();   // remove the first cell from the queue
+            // for all its neighbors...
+            for(let j =0; j < current.neighbors.length; j++){
+                let neighbor = current.neighbors[j];
+                var dist = current.dist+10; // adjacent neighbors have a distance of 10
+                if(current.loc.x != neighbor.loc.x && current.loc.y != neighbor.loc.y)
+                    dist = current.dist+14; // diagonal neighbors have a distance of 14
+                // if this neighbor has not already been assigned a distance
+                // or we now have a shorter distance, give it a distance
+                // and a parent and push to the end of the queue.
+                if(neighbor.dist > dist) {
+                    neighbor.parent = current;
+                    neighbor.vec = neighbor.getVector();   // vector to parent
+                    neighbor.dist = dist;
+                    this.queue.push(neighbor);
+                    }
+              }     // for each neighbor
+            }   // while(queue.length)
+        else this.current = null;
+    }
     this.render();
     for(let i = this.enemies.length-1; i >= 0; i--) {
         if(this.enemies[i].kill)
@@ -218,7 +227,7 @@ class PathFinder{
     for(let i = 0; i < this.queue.length; i++){
         if(i == numQs)
             break;  // only display the first numQs cells
-        ctx.fillStyle = "blue";
+        ctx.fillStyle = "LightGreen";
         let qLoc_x = queue.left+(i*this.w);
         let qLoc_y = queue.top;
         ctx.fillRect(qLoc_x,qLoc_y,this.w,this.w);
